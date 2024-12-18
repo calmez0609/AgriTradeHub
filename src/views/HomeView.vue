@@ -6,7 +6,9 @@
       <CropSearchBar />
     </div>
     <!-- 傳遞 API 資料給 ShowRecord 組件 -->
-    <ShowRecord :records="records" />
+    <ShowRecord :records="topTenRecords" />
+    <!-- 傳遞資料給 CropChart 組件 -->
+    <CropChart :records="topTenRecords" />
   </div>
 </template>
 
@@ -15,7 +17,8 @@ import axios from "axios";
 import NavBar from "@/components/NavBar.vue";
 import HeaderView from "@/components/HeaderView.vue";
 import CropSearchBar from "@/components/CropSearchBar.vue";
-import ShowRecord from "@/components/ShowRecord.vue"; // Import ShowRecord component
+import ShowRecord from "@/components/ShowRecord.vue"; // 引入 ShowRecord 組件
+import CropChart from "@/components/CropChart.vue"; // 引入 CropChart 組件
 
 export default {
   name: "HomeView",
@@ -24,11 +27,19 @@ export default {
     HeaderView,
     CropSearchBar,
     ShowRecord,
+    CropChart, // 註冊 CropChart 組件
   },
   data() {
     return {
       records: [], // 保存 API 獲取的資料
     };
+  },
+  computed: {
+    // 只取前 10 筆資料
+    topTenRecords() {
+      console.log(this.records.slice(0, 10))
+      return this.records.slice(0, 10);
+    }
   },
   mounted() {
     this.fetchData();

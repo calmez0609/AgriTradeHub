@@ -1,25 +1,51 @@
 <template>
   <div class="home">
     <NavBar /> <!-- 引入 NavBar 組件 -->
-    <HeaderView/> <!-- 引入 Header 組件 -->
+    <HeaderView /> <!-- 引入 HeaderView 組件 -->
     <div class="content">
-            <CropSearchBar />
+      <CropSearchBar />
     </div>
+    <!-- 傳遞 API 資料給 ShowRecord 組件 -->
+    <ShowRecord :records="records" />
   </div>
 </template>
 
 <script>
-// Import the necessary components
+import axios from "axios";
 import NavBar from "@/components/NavBar.vue";
-import HeaderView from "@/components/HeaderView.vue"; // Import Header component
-import CropSearchBar from "@/components/CropSearchBar.vue"; // Import CropSearchBar component
+import HeaderView from "@/components/HeaderView.vue";
+import CropSearchBar from "@/components/CropSearchBar.vue";
+import ShowRecord from "@/components/ShowRecord.vue"; // Import ShowRecord component
 
 export default {
   name: "HomeView",
   components: {
     NavBar,
-    HeaderView, // Register Header component
-    CropSearchBar, // Register CropSearchBar component
+    HeaderView,
+    CropSearchBar,
+    ShowRecord,
+  },
+  data() {
+    return {
+      records: [], // 保存 API 獲取的資料
+    };
+  },
+  mounted() {
+    this.fetchData();
+  },
+  methods: {
+    fetchData() {
+      axios
+        .get(
+          "https://data.moa.gov.tw/Service/OpenData/FromM/FarmTransData.aspx?IsTransData=1&UnitId=037"
+        )
+        .then((response) => {
+          this.records = response.data; // 將 API 資料儲存到 records
+        })
+        .catch((error) => {
+          console.error("API error:", error);
+        });
+    },
   },
 };
 </script>

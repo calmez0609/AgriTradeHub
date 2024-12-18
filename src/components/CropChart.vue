@@ -110,7 +110,7 @@ export default {
                   if (label === "交易量") {
                     return `${label}: ${value} 件`; // 交易量顯示 "件"
                   } else {
-                    return `${label}: NT ${value} 元`; // 其他顯示為 "NT"
+                    return `${label}: NT ${value}`; // 其他顯示為 "NT"
                   }
                 }
               }

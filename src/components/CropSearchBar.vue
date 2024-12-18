@@ -1,136 +1,160 @@
 <template>
-  <div class="container">
-    <div class="row">
-      <div class="col-12 mobile-font">
-        <div class="form-row search_bar">
-          <!-- 第一行: 依作物類別、交易市場、依作物 -->
-          <div class="form-group col-lg-4 col-md-4 col-12">
-            <label for="ddlCropCategory">依作物類別</label>
-            <div class="form-row" style="padding-left: 5px; padding-right: 5px;">
-              <select
-                class="custom-select"
-                v-model="selectedCropCategory"
-                id="ddlCropCategory"
-                name="TcType"
-              >
-                <option value="-1" selected>選擇作物類別</option>
-                <option value="N04">蔬菜</option>
-                <option value="N05">果品</option>
-                <option value="N06">花卉</option>
-              </select>
-            </div>
-          </div>
+  <div class="crop-search-bar">
+    <!-- 搜尋欄容器 -->
+    <div class="search-container">
+      <!-- 依作物類別 -->
+      <div class="field">
+        <label for="category">依作物類別</label>
+        <select id="category" v-model="selectedCategory" @change=" loadMarkets">
+          <option value="vegetable">蔬菜</option>
+          <option value="fruit">水果</option>
+          <option value="pottedflowers">盆花</option>
+          <option value="flower">花卉</option>
+        </select>
+      </div>
 
-          <div class="form-group col-lg-4 col-md-4 col-12">
-            <label for="MarketId">交易市場</label>
-            <div class="form-row" style="padding-left: 5px; padding-right: 5px;">
-              <button class="btn btn-outline-secondary" @click="toggleDropdown">
-                選擇交易市場
-              </button>
+      <!-- 交易市場 -->
+        <div class="field">
+          <label for="market">交易市場</label>
+          <select id="market" v-model="selectedMarkets" :disabled="!selectedCategory">
+            <option disabled value="">請先選擇作物類別</option>
+            <option v-for="market in markets" :key="market.value" :value="market.value">
+        {{ market.label }}
+            </option>
+        </select>
+      </div>
 
-              <!-- Dropdown menu for market selection -->
-              <div v-if="dropdownVisible" class="dropdown-menu show" style="position: absolute; z-index: 1000; width: 200px;">
-                <div v-for="market in markets" :key="market.value" class="dropdown-item">
-                  <input
-                    type="checkbox"
-                    :id="'market-' + market.value"
-                    :value="market.value"
-                    v-model="selectedMarkets"
-                  />
-                  <label :for="'market-' + market.value">{{ market.label }}</label>
-                </div>
-              </div>
-            </div>
-          </div>
+      <!-- 依作物 -->
+      <div class="field">
+        <label for="crop">依作物</label>
+        <input type="text" id="crop" placeholder="請選擇" />
+      </div>
 
-          <div class="form-group col-lg-4 col-md-4 col-12">
-            <label for="CropName">依作物</label>
-            <div class="form-row">
-              <div class="form-group col CropName">
-                <button
-                  type="button"
-                  id="btnChooseCrop"
-                  class="btn btn-light form-control exclude"
-                  @click="openCropModal"
-                >
-                  {{ selectedCrop ? selectedCrop : '請選擇' }}
-                </button>
-              </div>
-              <div
-                id="CropNameList"
-                v-if="selectedCropList.length"
-                class="text-truncate form-group col border rounded bg-white form-control m-0 mx-1"
-              >
-                <span v-for="crop in selectedCropList" :key="crop" class="badge badge-secondary">
-                  {{ crop }}
-                </span>
-              </div>
-            </div>
-          </div>
+      <!-- 換行：第二行 -->
+      <div class="field wide">
+        <label for="search">關鍵字或代號查詢</label>
+        <div class="input-group">
+          <input type="text" id="search" placeholder="鳳梨、B4" />
+          <button class="mic-button">🎤</button>
         </div>
+        <small>請勿輸入特殊字元（標點符號及空格）</small>
+      </div>
 
-        <!-- 第二行: 關鍵字查詢、日期區間、搜尋和列出全部按鈕 -->
-        <div class="form-row search_bar">
-          <!-- Keyword Search -->
-          <div class="form-group col-lg-4 col-md-5 col-12">
-            <label for="ByKeyword">關鍵字或代號查詢</label>
-            <div class="input-group">
-              <input
-                type="text"
-                v-model="keyword"
-                class="form-control"
-                placeholder="鳳梨、B4"
-                id="ByKeyword"
-                name="ByKeyword"
-              />
-              <div class="input-group-append">
-                <button type="button" class="btn mt-0 btn-light border voiceInput">
-                  <em class="fas fa-microphone"></em>
-                </button>
-              </div>
-            </div>
-            <label>請勿輸入特殊字元（標點符號及空格）</label>
-            <span id="spKeywordDesc">輸入名稱或代號，例如：鳳梨、B4</span>
-          </div>
-
-          <!-- Date Range -->
-          <div class="form-group col-lg-4 col-md-3 col-12">
-            <label for="DateRange">交易日期區間</label>
-            <div class="form-row date-picker">
-              <input
-                type="date"
-                v-model="startDate"
-                id="startDate"
-                class="form-control"
-                :max="endDate"
-              />
-              <input
-                type="date"
-                v-model="endDate"
-                id="endDate"
-                class="form-control"
-                :min="startDate"
-              />
-            </div>
-          </div>
-
-          <!-- Search and Reset Buttons -->
-          <div class="col-lg-2 col-md-2 col-6">
-            <input type="hidden" v-model="cropId" />
-            <button type="button" class="btn mb-2 form-control btnQuery" @click="search">
-              <em class="fa fa-search"></em> 搜尋
-            </button>
-          </div>
-          <div class="col-lg-2 col-md-2 col-6">
-            <button type="button" class="btn mb-2 form-control btnQueryAll" @click="listAll">
-              列出全部
-            </button>
-          </div>
+      <!-- 交易日期區間 -->
+      <div class="field date">
+        <label>交易日期區間</label>
+        <div class="date-picker">
+          <input type="date" />
+          <input type="date" />
         </div>
+      </div>
+
+      <!-- 按鈕區 -->
+      <div class="buttons">
+        <button class="search-button">🔍 搜尋</button>
+        <button class="list-all-button">列出全部</button>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.crop-search-bar {
+  background-color: #0a6b5c;
+  padding: 20px;
+  color: white;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center; /* 水平置中 */
+}
+
+.search-container {
+  display: flex;
+  flex-wrap: wrap; /* 換行 */
+  justify-content: center; /* 水平置中 */
+  gap: 20px 30px; /* 上下和左右間隔 */
+  max-width: 900px; /* 最大寬度，防止過寬 */
+  width: 100%; /* 讓內容自適應寬度 */
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 200px; /* 欄位最小寬度200px */
+  text-align: left;
+}
+
+.field label {
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.field select,
+.field input {
+  padding: 5px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.field.wide {
+  flex: 1 1 100%; /* 關鍵字查詢框獨占一行 */
+}
+
+.input-group {
+  display: flex;
+}
+
+.input-group input {
+  flex: 1;
+}
+
+.mic-button {
+  margin-left: 5px;
+  border: none;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 5px 10px;
+}
+
+.field.date .date-picker {
+  display: flex;
+  gap: 10px;
+}
+
+.date-picker input {
+  width: 100%;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center; /* 讓按鈕置中 */
+  flex: 1 1 100%; /* 按鈕獨占一行 */
+}
+
+.search-button,
+.list-all-button {
+  padding: 8px 15px;
+  font-size: 14px;
+  color: #fff;
+  background-color: #005f56;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.list-all-button {
+  background-color: #444;
+}
+
+.search-button:hover,
+.list-all-button:hover {
+  background-color: #333;
+}
+</style>
 
 <script>
 import '@/css/CropSearchBar.css'; // 引入外部 CSS 檔案
@@ -138,8 +162,8 @@ import '@/css/CropSearchBar.css'; // 引入外部 CSS 檔案
 export default {
   data() {
     return {
-      selectedCropCategory: '-1',
-      selectedMarkets: ['514'], // Default selected market
+      selectedCategory:'',
+      selectedMarkets: '', // Default selected market
       selectedCropList: [],
       selectedCrop: null,
       keyword: '',
@@ -197,6 +221,24 @@ export default {
     toggleDropdown() {
       this.dropdownVisible = !this.dropdownVisible; // 切換下拉式選單顯示狀態
     },
+     // 加載市場選項
+     loadMarkets() {
+  if (this.selectedCategory) {
+    // 根據 selectedCategory 來篩選市場 (未來可根據需要擴展篩選條件)
+    this.filteredMarkets = this.markets; // 假設未來 markets 會根據 category 篩選
+
+    // 自動將交易市場設置為陣列中的第一個值
+    if (this.filteredMarkets.length > 0) {
+      this.selectedMarkets = this.filteredMarkets[0].value;
+    } else {
+      this.selectedMarkets = ''; // 若沒有符合的市場則設為空值
+    }
+  } else {
+    // 重置市場和選擇值
+    this.filteredMarkets = [];
+    this.selectedMarkets = '';
+  }
   },
-};
+ }
+}
 </script>
